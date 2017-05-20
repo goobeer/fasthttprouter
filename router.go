@@ -218,17 +218,15 @@ func (r *Router) Handle(method, path string, handle fasthttp.RequestHandler) {
 // Internally a http.FileServer is used, therefore http.NotFound is used instead
 // of the Router's NotFound handler.
 //     router.ServeFiles("/src/*filepath", "/var/www")
-func (r *Router) ServeFiles(path string, rootPath string) {
+func (r *Router) ServeFiles(path, rootPath string, compressed bool) {
 	if len(path) < 10 || path[len(path)-10:] != "/*filepath" {
 		panic("path must end with /*filepath in path '" + path + "'")
 	}
 	prefix := path[:len(path)-10]
 
-	fileHandler := fasthttp.FSHandler(rootPath, strings.Count(prefix, "/"))
+	fileHandler := fasthttp.FSHandler(rootPath, strings.Count(prefix, "/"), compressed)
 
-	r.GET(path, func(ctx *fasthttp.RequestCtx) {
-		fileHandler(ctx)
-	})
+	r.GET(path, fileHandler)
 }
 
 func (r *Router) recv(ctx *fasthttp.RequestCtx) {
